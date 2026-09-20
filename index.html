@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國小學習扶助開班與行政排程整合系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans TC', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; }
+      .page-break { page-break-after: always; }
+      table { width: 100% !important; border-collapse: collapse !important; }
+      th, td { border: 1px solid #111827 !important; padding: 4px 6px !important; font-size: 10pt !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- 系統頂部導覽列 (列印時隱藏) -->
+  <header class="no-print bg-slate-900 text-white shadow sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center py-3">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-indigo-600 rounded-lg shadow">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold">學習扶助開班作業整合系統</h1>
+          <p class="text-xs text-slate-400">教育部方案・資格判定 ➔ 意願分流 ➔ 自動排程 ➔ 法定表件</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 mt-2 sm:mt-0 text-xs">
+        <button type="button" onclick="handleResetDefaultData()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">載入範例資料</button>
+        <button type="button" onclick="exportJSONBackup()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">備份資料</button>
+        <label class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded cursor-pointer transition">
+          還原備份
+          <input type="file" class="hidden" accept=".json" onchange="importJSONBackup(event)">
+        </label>
+      </div>
+    </div>
+    <nav class="bg-slate-800 border-t border-slate-700 px-4 sm:px-8">
+      <div class="max-w-7xl mx-auto flex space-x-2 overflow-x-auto py-2" id="navTabsContainer"></div>
+    </nav>
+  </header>
+
+  <!-- 主內容工作區 -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6" id="appRoot"></main>
+
+  <footer class="no-print bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+    南光國民小學 學習扶助行政支援系統・依據教育部國民及學前教育署補助辦理學習扶助作業要點規範建置
+  </footer>
+
+  <!-- 彈跳對話框容器 -->
+  <div id="modalContainer" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div id="modalContent" class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-full overflow-y-auto p-6"></div>
+  </div>
+
+  <script>
+    const STATE_STORAGE_KEY = 'edu_remedial_class_system_v3';
+
+    // 原始試算表 33 位學生資料定義
+    const RAW_SEED_CSV = `
+F238491023,李O羽,2,3,20,女,0495123998,0932145887,X,X,,一般生,c2_a
+K251928374,洪O妶,2,3,21,女,0910558112,0910558112,X,X,,原住民學生,c2_a
+P239485716,蕭O安,2,3,25,女,0933774821,0933774821,X,X,,一般生,c2_a
+L173829104,葛O瑜,2,4,12,男,2781445,0928771459,X,X,,一般生,c2_a
+W281920384,古O芯,2,4,15,女,0988441223,0919225784,X,X,,原住民學生,c2_a
+Y139284756,全O梵,2,5,8,男,0955661442,0955661442,O,X,,原住民學生,c2_a
+R102938475,張O威,2,6,11,男,0911778945,0911778945,X,X,,一般生,c2_a
+Q293847561,白O璇,2,6,13,女,0922883441,0922883441,X,X,,一般生,c2_a
+E284756102,徐O琪,2,8,16,女,0966332115,0933441558,O,X,,一般生,c2_a
+T175849302,羅O樂,3,2,7,男,0987114552,0987114552,X,X,,原住民學生,c3_a
+I164738291,陳O諺,3,2,11,男,0912336547,0912336547,O,X,,低收農工,c3_a
+O153627182,廖O榕,3,2,22,男,0955448771,0955448771,X,X,,一般生,c3_a
+A242536172,廖O安,3,3,10,女,0920114553,0920114553,X,X,,原住民學生,c3_a
+S191827364,饒O睿,3,7,4,男,0935669882,0918774226,X,X,,一般生,c3_a
+D282716253,高O晴,4,4,26,女,0982554113,0982554113,X,X,X,一般生,c4_a
+F171625344,吳O貴,4,7,7,男,0911559664,0911559664,X,X,O,一般生,c4_a
+G161524335,古O宇,4,8,10,男,0977221558,0977221558,X,X,X,一般生,c4_a
+H151423326,劉O樂,5,2,11,男,0932554778,0932554778,O,X,O,一般生,c5_a1
+J241322317,黃O玲,5,2,14,女,0492778114,0915668224,,X,X,一般生,c5_a1
+K231221308,葉O如,5,2,16,女,0925447113,0925447113,X,X,O,一般生,c5_a1
+L221120299,卓O汝,5,3,13,女,0963558221,0963558221,X,X,O,一般生,c5_a1
+Z211019280,劉O貞,5,3,14,女,0918447552,0918447552,O,X,X,一般生,c5_a1
+X200918271,王O嫣,5,3,26,女,0931445887,0931445887,,X,X,一般生,c5_a1
+C190817262,廖O頤,5,5,11,男,0955887441,0955887441,,X,X,一般生,c5_a1
+V180716253,林O展,5,7,3,男,0922115663,0922115663,O,X,O,一般生,c5_a1
+B270615244,施O禎,5,7,12,女,0988774552,0988774552,,X,X,一般生,c5_a1
+N260514235,汪O婷,5,9,25,女,0910225884,0910225884,X,X,X,一般生,c5_a1
+M150413226,潘O霖,6,1,8,男,0932556997,0932556997,X,,O,一般生,c6_a1
+M140312217,谷O衛,6,1,11,男,0911448225,0911448225,X,X,O,一般生,c6_a1
+Q130211208,程O致,6,4,11,男,0925778114,0925778114,,X,O,一般生,c6_a1
+W220110199,楊O,6,5,13,女,0955114778,0955114778,O,X,X,一般生,c6_a1
+E210009180,陳O瑄,6,6,23,女,0988552114,0988552114,,X,O,一般生,c6_a1
+R109908171,謝O尉,6,7,4,男,0915447882,0915447882,,X,O,一般生,c6_a1
+`.trim();
+
+    function createDefaultState() {
+      const holidays = '2022-10-10,2023-01-02,2023-01-20,2023-01-23,2023-01-24,2023-01-25,2023-01-26,2023-01-27,2023-01-30,2023-01-31,2023-02-01,2023-02-02,2023-02-03,2023-02-06,2023-02-07,2023-02-08,2023-02-27,2023-02-28,2023-04-04,2023-04-05,2023-05-03'.split(',');
+
+      const students = [];
+      const screenings = [];
+      const surveys = {};
+      const classStudentMap = { c2_a: [], c3_a: [], c4_a: [], c5_a1: [], c6_a1: [] };
+
+      RAW_SEED_CSV.split(String.fromCharCode(10)).forEach(line => {
+        if (!line.trim()) return;
+        const parts = line.split(',');
+        const id = parts.at(0);
+        const name = parts.at(1);
+        const grade = parseInt(parts.at(2));
+        const cl = parseInt(parts.at(3));
+        const st = parseInt(parts.at(4));
+        const gen = parts.at(5);
+        const ph = parts.at(6);
+        const p1 = parts.at(7);
+        const ch = parts.at(8);
+        const ma = parts.at(9);
+        const en = parts.at(10);
+        const cat = parts.at(11);
+        const cId = parts.at(12);
+
+        students.push({ idCard: id, name, grade, classNum: cl, seatNum: st, gender: gen, phone: ph, parent1Phone: p1, parent2Phone: '' });
+        screenings.push({ idCard: id, name, grade, classNum: cl, seatNum: st, chinese: ch, math: ma, english: en, category: cat });
+        surveys[id] = { willAttend: false, alternative: '' };
+        if (classStudentMap[cId]) classStudentMap[cId].push(id);
+      });
+
+      const classes = [
+        {
+          id: 'c2_a', name: '二年甲班', grade: 2, teacher: '(國數)簡雪娥', room: '書法教室',
+          timeDesc: '每周五下午3節 (13:30~16:00)', startDate: '2023-03-03', endDate: '2023-05-26',
+          daysOfWeek: '5'.split(',').map(Number), periodsPerMeeting: 3, studentIds: classStudentMap.c2_a
+        },
+        {
+          id: 'c3_a', name: '三年甲班', grade: 3, teacher: '(國數)導師輪流', room: '三年級教室',
+          timeDesc: '每周五下午3節 (13:30~16:00)', startDate: '2023-03-03', endDate: '2023-05-26',
+          daysOfWeek: '5'.split(',').map(Number), periodsPerMeeting: 3, studentIds: classStudentMap.c3_a
+        },
+        {
+          id: 'c4_a', name: '四年甲班', grade: 4, teacher: '(國數)何麗珍', room: '自然教室二',
+          timeDesc: '每周五下午3節 (13:30~16:00)', startDate: '2023-03-03', endDate: '2023-05-26',
+          daysOfWeek: '5'.split(',').map(Number), periodsPerMeeting: 3, studentIds: classStudentMap.c4_a
+        },
+        {
+          id: 'c5_a1', name: '五年甲班(一)', grade: 5, teacher: '(國數)何麗珍', room: '自然教室二',
+          timeDesc: '每周一、二、四 16:10~16:50', startDate: '2023-02-27', endDate: '2023-05-25',
+          daysOfWeek: '1,2,4'.split(',').map(Number), periodsPerMeeting: 1, studentIds: classStudentMap.c5_a1
+        },
+        {
+          id: 'c6_a1', name: '六年甲班(一)', grade: 6, teacher: '(國數)江燕如', room: '六年5班',
+          timeDesc: '每周一、二、四 16:10~16:50', startDate: '2023-02-27', endDate: '2023-05-25',
+          daysOfWeek: '1,2,4'.split(',').map(Number), periodsPerMeeting: 1, studentIds: classStudentMap.c6_a1
+        }
+      ];
+
+      return {
+        currentTab: 'classes',
+        holidays,
+        students,
+        screenings,
+        surveys,
+        classes,
+        reportConfig: { selectedClassId: 'c2_a', reportType: 'roster' }
+      };
+    }
+
+    let state = loadStoredState();
+
+    function loadStoredState() {
+      try {
+        const stored = localStorage.getItem(STATE_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.students && parsed.classes && parsed.classes.length > 0) return parsed;
+        }
+      } catch (err) {
+        console.error('Error reading localStorage:', err);
+      }
+      return createDefaultState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        console.error('Error saving state:', err);
+      }
+      render();
+    }
+
+    function handleResetDefaultData() {
+      if (confirm('確定重新載入標準示範資料嗎？現有未備份之改動將被覆蓋。')) {
+        state = createDefaultState();
+        saveState();
+        alert('已成功還原為標準示範資料！');
+      }
+    }
+
+    function exportJSONBackup() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', '學習扶助系統備份_' + new Date().toISOString().slice(0, 10) + '.json');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importJSONBackup(event) {
+      const file = event.target.files.item(0);
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.students && data.classes) {
+            state = data;
+            saveState();
+            alert('已成功還原備份資料！');
+          } else {
+            alert('備份格式不符！');
+          }
+        } catch (err) {
+          alert('解析備份檔案失敗：' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // 排課運算：動態展開起訖日期、排除國定放假日並計算時數
+    function calculateScheduleSessions(cls, holidays) {
+      const sessions = [];
+      const start = new Date(cls.startDate);
+      const end = new Date(cls.endDate);
+      const dayMap = { 0: 7, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
+
+      let cur = new Date(start);
+      while (cur <= end) {
+        const isoDay = dayMap[cur.getDay()];
+        if (cls.daysOfWeek.includes(isoDay)) {
+          const dateStr = cur.toISOString().slice(0, 10);
+          const isHoliday = holidays.includes(dateStr);
+          sessions.push({
+            date: dateStr,
+            dayOfWeekText: ['日', '一', '二', '三', '四', '五', '六'].at(cur.getDay()),
+            isHoliday,
+            periods: isHoliday ? 0 : cls.periodsPerMeeting
+          });
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+      return sessions;
+    }
+
+    function calculateClassTotalPeriods(cls, holidays) {
+      const sessions = calculateScheduleSessions(cls, holidays);
+      return sessions.reduce((sum, s) => sum + s.periods, 0);
+    }
+
+    function getCategoryCode(cat) {
+      if (!cat) return '5';
+      if (cat.includes('原住民')) return '1';
+      if (cat.includes('身心障礙')) return '2';
+      if (cat.includes('新住民') || cat.includes('外籍配偶')) return '3';
+      if (cat.includes('低收') || cat.includes('免納所得稅')) return '4';
+      return '5';
+    }
+
+    function setTab(tabId) {
+      state.currentTab = tabId;
+      saveState();
+    }
+
+    // 畫面渲染主分派器
+    function render() {
+      renderNavTabs();
+      const app = document.getElementById('appRoot');
+      if (!app) return;
+
+      switch (state.currentTab) {
+        case 'students':
+          renderStudentsModule(app);
+          break;
+        case 'screening':
+          renderScreeningModule(app);
+          break;
+        case 'survey':
+          renderSurveyModule(app);
+          break;
+        case 'classes':
+          renderClassesModule(app);
+          break;
+        case 'reports':
+          renderReportsModule(app);
+          break;
+        default:
+          renderClassesModule(app);
+      }
+    }
+
+    function renderNavTabs() {
+      const tabs = [
+        { id: 'students', label: '1. 全校學籍與通訊底冊', count: state.students.length },
+        { id: 'screening', label: '2. 評量篩選與資格清單', count: state.screenings.length },
+        { id: 'survey', label: '3. 意願調查與分流追蹤', count: Object.keys(state.surveys).length },
+        { id: 'classes', label: '4. 開班規劃與自動排程', count: state.classes.length },
+        { id: 'reports', label: '5. 法定表件輸出中心' }
+      ];
+      const container = document.getElementById('navTabsContainer');
+      if (!container) return;
+
+      container.innerHTML = tabs.map(t => {
+        const isActive = state.currentTab === t.id;
+        const activeCls = isActive 
+          ? 'bg-indigo-600 text-white font-semibold shadow' 
+          : 'text-slate-300 hover:bg-slate-700 hover:text-white font-medium';
+        return `
+          <button type="button" onclick="setTab('${t.id}')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition flex items-center space-x-2 ${activeCls}">
+            <span>${t.label}</span>
+            ${t.count !== undefined ? `<span class="px-1.5 py-0.5 rounded-full text-xs ${isActive ? 'bg-indigo-800 text-indigo-100' : 'bg-slate-700 text-slate-300'}">${t.count}</span>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    // 模組一：學籍清冊
+    function renderStudentsModule(container) {
+      container.innerHTML = `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">全校學生基本資料清冊 (主索引庫)</h2>
+              <p class="text-xs text-slate-500 mt-0.5">提供年級、班級、座號與家庭雙監護人電話，作為開班通知與名冊產出基底</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <label class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded cursor-pointer shadow transition flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span>匯入 CSV 名冊</span>
+                <input type="file" accept=".csv" class="hidden" onchange="importStudentsCSV(event)">
+              </label>
+              <button type="button" onclick="exportStudentsCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded border border-slate-300 flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>匯出 CSV 名冊</span>
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 uppercase tracking-wider text-xs border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-2.5">年級/班級/座號</th>
+                  <th class="px-4 py-2.5">學生姓名</th>
+                  <th class="px-4 py-2.5">身分證字號</th>
+                  <th class="px-4 py-2.5">性別</th>
+                  <th class="px-4 py-2.5">市話 / 聯絡電話</th>
+                  <th class="px-4 py-2.5">監護人手機</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${state.students.map(s => `
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-2 font-medium text-slate-900">${s.grade}年${s.classNum}班 (${s.seatNum}號)</td>
+                    <td class="px-4 py-2 font-semibold text-slate-800">${s.name}</td>
+                    <td class="px-4 py-2 font-mono text-slate-500">${s.idCard}</td>
+                    <td class="px-4 py-2">${s.gender || '-'}</td>
+                    <td class="px-4 py-2">${s.phone || '-'}</td>
+                    <td class="px-4 py-2 text-indigo-600 font-mono">${s.parent1Phone || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 匯入 CSV 名冊功能：支援常見欄位別名與自動更新 (Upsert)
+    function importStudentsCSV(event) {
+      const file = event.target.files.item(0);
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const text = e.target.result;
+          const lines = text.split(String.fromCharCode(10)).map(l => l.trim()).filter(l => l.length > 0);
+          if (lines.length <= 1) {
+            alert('CSV 檔案為空或無有效資料列！');
+            return;
+          }
+          const header = lines.at(0).split(',').map(h => h.replace(/^["']|["']$/g, '').trim());
+          const findCol = keywords => header.findIndex(h => keywords.some(k => h.includes(k)));
+
+          const nameIdx = findCol(['姓名', '學生姓名']);
+          const gradeIdx = findCol(['年級']);
+          const classIdx = findCol(['班級', '班別']);
+          const seatIdx = findCol(['座號']);
+          const genderIdx = findCol(['性別']);
+          const idCardIdx = findCol(['身分證', '身分證號', '身分證統一編號']);
+          const phoneIdx = findCol(['連絡電話', '市話', '電話']);
+          const p1Idx = findCol(['監護人1', '監護人手機', '手機']);
+          const p2Idx = findCol(['監護人2']);
+
+          let importedCount = 0;
+          let updatedCount = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines.at(i);
+            if (!line) continue;
+            const cols = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+
+            const name = nameIdx !== -1 ? cols.at(nameIdx) : cols.at(0);
+            const grade = gradeIdx !== -1 ? parseInt(cols.at(gradeIdx)) : parseInt(cols.at(1));
+            const classNum = classIdx !== -1 ? parseInt(cols.at(classIdx)) : parseInt(cols.at(2));
+            const seatNum = seatIdx !== -1 ? parseInt(cols.at(seatIdx)) : parseInt(cols.at(3));
+            const gender = genderIdx !== -1 ? cols.at(genderIdx) : cols.at(4);
+            const idCard = idCardIdx !== -1 ? cols.at(idCardIdx) : cols.at(5);
+            const phone = phoneIdx !== -1 ? cols.at(phoneIdx) : '';
+            const parent1Phone = p1Idx !== -1 ? cols.at(p1Idx) : '';
+            const parent2Phone = p2Idx !== -1 ? cols.at(p2Idx) : '';
+
+            if (!name || !idCard) continue;
+
+            const existingIdx = state.students.findIndex(s => s.idCard === idCard);
+            const studentObj = {
+              idCard,
+              name,
+              grade: isNaN(grade) ? 1 : grade,
+              classNum: isNaN(classNum) ? 1 : classNum,
+              seatNum: isNaN(seatNum) ? 1 : seatNum,
+              gender: gender || '男',
+              phone: phone || '',
+              parent1Phone: parent1Phone || '',
+              parent2Phone: parent2Phone || ''
+            };
+
+            if (existingIdx !== -1) {
+              state.students.splice(existingIdx, 1, studentObj);
+              updatedCount++;
+            } else {
+              state.students.push(studentObj);
+              importedCount++;
+            }
+
+            if (!state.screenings.some(sc => sc.idCard === idCard)) {
+              state.screenings.push({
+                idCard,
+                name,
+                grade: studentObj.grade,
+                classNum: studentObj.classNum,
+                seatNum: studentObj.seatNum,
+                chinese: 'X',
+                math: 'X',
+                english: '',
+                category: '一般生'
+              });
+            }
+            if (!state.surveys[idCard]) {
+              state.surveys[idCard] = { willAttend: false, alternative: '' };
+            }
+          }
+
+          saveState();
+          alert('CSV 名冊匯入完成！新增 ' + importedCount + ' 筆，更新 ' + updatedCount + ' 筆學生資料。');
+        } catch (err) {
+          alert('解析 CSV 名冊失敗：' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportStudentsCSV() {
+      const rows = ['姓名,年級,班級,座號,性別,身分證號,連絡電話,監護人手機'];
+      state.students.forEach(s => {
+        rows.push(`"${s.name}",${s.grade},${s.classNum},${s.seatNum},"${s.gender}","${s.idCard}","${s.phone || ''}","${s.parent1Phone || ''}"`);
+      });
+      downloadFile('\uFEFF' + rows.join(String.fromCharCode(10)), '全校學生名冊.csv', 'text/csv;charset=utf-8;');
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+// 模組二：評量篩選
+    function renderScreeningModule(container) {
+      container.innerHTML = `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">科技化評量未通過名單（篩選測驗結果 X/O）</h2>
+              <p class="text-xs text-slate-500 mt-0.5">X 表示未通過、O 表示通過。依規將國語、數學或英語未通過者列入受輔對象</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button type="button" onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded cursor-pointer shadow transition flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>列印家長通知單</span>
+              </button>
+              <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded cursor-pointer shadow transition flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span>匯入清單 CSV</span>
+                <input type="file" accept=".csv" class="hidden" onchange="importScreeningCSV(event)">
+              </label>
+              <button type="button" onclick="exportScreeningCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded border border-slate-300 flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>匯出清單 CSV</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto no-print">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 uppercase tracking-wider text-xs border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-2.5">姓名</th>
+                  <th class="px-4 py-2.5">身分證統一編號</th>
+                  <th class="px-4 py-2.5">原班級</th>
+                  <th class="px-4 py-2.5 text-center">國語文測驗</th>
+                  <th class="px-4 py-2.5 text-center">數學測驗</th>
+                  <th class="px-4 py-2.5 text-center">英語測驗</th>
+                  <th class="px-4 py-2.5">法定身分類別</th>
+                  <th class="px-4 py-2.5 text-center">受輔資格判定</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${state.screenings.map(sc => {
+                  const isEligible = sc.chinese === 'X' || sc.math === 'X' || sc.english === 'X';
+                  return `
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="px-4 py-2 font-semibold text-slate-800">${sc.name}</td>
+                      <td class="px-4 py-2 font-mono text-slate-500">${sc.idCard}</td>
+                      <td class="px-4 py-2">${sc.grade}年${sc.classNum}班 (${sc.seatNum}號)</td>
+                      <td class="px-4 py-2 text-center font-bold ${sc.chinese === 'X' ? 'text-rose-600 bg-rose-50' : 'text-emerald-600'}">${sc.chinese || '-'}</td>
+                      <td class="px-4 py-2 text-center font-bold ${sc.math === 'X' ? 'text-rose-600 bg-rose-50' : 'text-emerald-600'}">${sc.math || '-'}</td>
+                      <td class="px-4 py-2 text-center font-bold ${sc.english === 'X' ? 'text-rose-600 bg-rose-50' : 'text-emerald-600'}">${sc.english || '-'}</td>
+                      <td class="px-4 py-2"><span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">${sc.category || '一般生'}</span></td>
+                      <td class="px-4 py-2 text-center">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${isEligible ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}">
+                          ${isEligible ? '待受輔追蹤' : '合格'}
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 列印專用的隱藏區塊：個別家長通知單 -->
+          <div class="hidden print-only p-2">
+            ${state.screenings.filter(sc => sc.chinese === 'X' || sc.math === 'X' || sc.english === 'X').map(sc => {
+              const subjects = [];
+              if (sc.chinese === 'X') subjects.push('國語');
+              if (sc.math === 'X') subjects.push('數學');
+              if (sc.english === 'X') subjects.push('英語');
+              const subjectStr = subjects.join('、');
+
+              return `
+              <div class="border-2 border-dashed border-slate-400 p-6 rounded-lg text-slate-900 page-break mb-8">
+                <div class="text-center border-b pb-3 mb-4">
+                  <h3 class="text-lg font-bold">南投縣南光國民小學 111學年度 學生參加學習扶助班家長通知與同意書</h3>
+                  <p class="text-xs text-slate-500 mt-1">教育部國民及學前教育署補助辦理學習扶助實施方案</p>
+                </div>
+                <div class="space-y-3 text-sm leading-relaxed">
+                  <p>親愛的 <strong>${sc.name}</strong> 家長您好：</p>
+                  <p class="indent-6">
+                    依據本校科技化評量篩選結果，貴子弟在 <strong>${subjectStr}</strong> 科目未達通過標準。為厚植學生基礎學力，提升學習成效與自信心，本校配合教育部政策特開設學習扶助輔導班。誠摯邀請貴子弟參加免費課後/課間學習扶助課程。
+                  </p>
+                  <div class="border-t pt-4 mt-6">
+                    <div class="font-bold mb-3 text-base">【家長回條】<span class="text-sm font-normal">（請勾選後簽名交回級任導師）</span></div>
+                    <div class="flex space-x-6 mb-2">
+                      <label class="flex items-center space-x-2"><div class="w-4 h-4 border border-black"></div> <span>同意參加學習扶助課程，並督促貴子弟準時出席。</span></label>
+                    </div>
+                    <div class="flex space-x-6">
+                      <label class="flex items-center space-x-2"><div class="w-4 h-4 border border-black"></div> <span>因個人生涯/補習因素，不參加課輔（將另由導師或替代方案追蹤）。</span></label>
+                    </div>
+                    <div class="mt-8 flex justify-between items-center text-sm">
+                      <span>學生班級座號：${sc.grade}年${sc.classNum}班 ${sc.seatNum}號</span>
+                      <span>家長簽名：____________________</span>
+                      <span>日期：112年____月____日</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function importScreeningCSV(event) {
+      const file = event.target.files.item(0);
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const text = e.target.result;
+          const lines = text.split(String.fromCharCode(10)).map(l => l.trim()).filter(l => l.length > 0);
+          if (lines.length <= 1) {
+            alert('CSV 檔案為空或無有效資料列！');
+            return;
+          }
+
+          const header = lines.at(0).split(',').map(h => h.replace(/^["']|["']$/g, '').trim());
+          const findCol = keywords => header.findIndex(h => keywords.some(k => h.includes(k)));
+
+          const nameIdx = findCol(['姓名', '學生姓名']);
+          const idCardIdx = findCol(['身分證', '身分證號', '身分證統一編號']);
+          const gradeIdx = findCol(['年級']);
+          const classIdx = findCol(['班級', '班別']);
+          const seatIdx = findCol(['座號']);
+          const chineseIdx = findCol(['國語', '國語文', '國語文測驗']);
+          const mathIdx = findCol(['數學', '數學測驗']);
+          const englishIdx = findCol(['英語', '英文', '英語測驗']);
+          const catIdx = findCol(['身分', '類別', '身分類別', '法定身分類別']);
+
+          let importedCount = 0;
+          let updatedCount = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines.at(i);
+            if (!line) continue;
+            const cols = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+
+            const name = nameIdx !== -1 ? cols.at(nameIdx) : cols.at(0);
+            const idCard = idCardIdx !== -1 ? cols.at(idCardIdx) : cols.at(1);
+            const grade = gradeIdx !== -1 ? parseInt(cols.at(gradeIdx)) : 1;
+            const classNum = classIdx !== -1 ? parseInt(cols.at(classIdx)) : 1;
+            const seatNum = seatIdx !== -1 ? parseInt(cols.at(seatIdx)) : 1;
+            const chinese = chineseIdx !== -1 ? cols.at(chineseIdx) : 'X';
+            const math = mathIdx !== -1 ? cols.at(mathIdx) : 'X';
+            const english = englishIdx !== -1 ? cols.at(englishIdx) : '';
+            const category = catIdx !== -1 ? cols.at(catIdx) : '一般生';
+
+            if (!name || !idCard) continue;
+
+            const existingIdx = state.screenings.findIndex(sc => sc.idCard === idCard);
+            const screeningObj = {
+              idCard,
+              name,
+              grade: isNaN(grade) ? 1 : grade,
+              classNum: isNaN(classNum) ? 1 : classNum,
+              seatNum: isNaN(seatNum) ? 1 : seatNum,
+              chinese: chinese || '',
+              math: math || '',
+              english: english || '',
+              category: category || '一般生'
+            };
+
+            if (existingIdx !== -1) {
+              state.screenings.splice(existingIdx, 1, screeningObj);
+              updatedCount++;
+            } else {
+              state.screenings.push(screeningObj);
+              importedCount++;
+            }
+
+            if (!state.students.some(s => s.idCard === idCard)) {
+              state.students.push({
+                idCard,
+                name,
+                grade: screeningObj.grade,
+                classNum: screeningObj.classNum,
+                seatNum: screeningObj.seatNum,
+                gender: '男',
+                phone: '',
+                parent1Phone: '',
+                parent2Phone: ''
+              });
+            }
+
+            if (!state.surveys[idCard]) {
+              state.surveys[idCard] = { willAttend: false, alternative: '' };
+            }
+          }
+
+          saveState();
+          alert('CSV 評量篩選名冊匯入完成！新增 ' + importedCount + ' 筆，更新 ' + updatedCount + ' 筆資料。');
+        } catch (err) {
+          alert('解析 CSV 清單失敗：' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportScreeningCSV() {
+      const rows = ['姓名,身分證統一編號,年級,班級,座號,國語文測驗,數學測驗,英語測驗,身分類別'];
+      state.screenings.forEach(sc => {
+        rows.push(`"${sc.name}","${sc.idCard}",${sc.grade},${sc.classNum},${sc.seatNum},"${sc.chinese}","${sc.math}","${sc.english}","${sc.category}"`);
+      });
+      downloadFile('\uFEFF' + rows.join(String.fromCharCode(10)), '科技化評量未通過名冊.csv', 'text/csv;charset=utf-8;');
+    }
+
+// 切換下拉式選單時更新狀態
+    function updateSurveyFilter(val) {
+      state.surveyFilterClass = val;
+      saveState(); // 觸發儲存並重新 render()
+    }
+
+    // 意願調查狀態更新
+    function updateSurveyWillAttend(idCard, isChecked) {
+      if (!state.surveys[idCard]) state.surveys[idCard] = { willAttend: false, alternative: '' };
+      state.surveys[idCard].willAttend = isChecked;
+      if (isChecked) state.surveys[idCard].alternative = '';
+      saveState();
+    }
+
+    function updateSurveyAlt(idCard, altValue) {
+      if (!state.surveys[idCard]) state.surveys[idCard] = { willAttend: false, alternative: '' };
+      state.surveys[idCard].alternative = altValue;
+      saveState();
+    }
+
+    // 模組三：意願調查與分流追蹤
+    function renderSurveyModule(container) {
+      // 1. 取得所有符合受輔資格的學生名單
+      const candidates = state.screenings.filter(sc => sc.chinese === 'X' || sc.math === 'X' || sc.english === 'X');
+      
+      // 2. 擷取不重複的班級清單 (格式如 "2-3" 代表 2年3班)，並自動排序
+      const uniqueClasses = [...new Set(candidates.map(c => `${c.grade}-${c.classNum}`))].sort((a, b) => {
+        const [gA, cA] = a.split('-').map(Number);
+        const [gB, cB] = b.split('-').map(Number);
+        return gA !== gB ? gA - gB : cA - cB; 
+      });
+      
+      // 3. 判斷目前的過濾條件並篩選顯示名單
+      const currentFilter = state.surveyFilterClass || 'all';
+      const filteredCandidates = currentFilter === 'all' 
+        ? candidates 
+        : candidates.filter(c => `${c.grade}-${c.classNum}` === currentFilter);
+
+      container.innerHTML = `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">參加學習扶助意願調查與學生流向追蹤表</h2>
+              <p class="text-xs text-slate-500 mt-0.5">勾選參加課輔（入班對象），未參加者需登載替代分流方案（博幼、課間、安親班、其他）</p>
+            </div>
+            
+            <!-- 加入班級下拉式選單與列印按鈕，使用 no-print 確保列印時隱藏此區塊 -->
+            <div class="flex items-center space-x-2 no-print">
+              <select onchange="updateSurveyFilter(this.value)" class="text-xs px-3 py-1.5 border border-slate-300 rounded font-semibold bg-slate-50 text-slate-700 cursor-pointer focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="all">顯示全部班級</option>
+                ${uniqueClasses.map(clsStr => {
+                  const [g, c] = clsStr.split('-');
+                  return `<option value="${clsStr}" ${currentFilter === clsStr ? 'selected' : ''}>${g}年${c}班</option>`;
+                }).join('')}
+              </select>
+              <button type="button" onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded shadow transition flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>列印調查表單</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <!-- 加入專門為了列印排版而設計的隱藏標題 (僅列印時顯示) -->
+            <div class="hidden print-only text-center mt-6 mb-4">
+              <h2 class="text-xl font-bold">參加學習扶助意願調查與學生流向追蹤表</h2>
+              <p class="text-sm mt-1 font-medium">${currentFilter === 'all' ? '全校總表' : `${currentFilter.split('-')[0]}年${currentFilter.split('-')[1]}班`}</p>
+            </div>
+            
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 text-xs border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-2.5">原班/座號</th>
+                  <th class="px-4 py-2.5">學生姓名</th>
+                  <th class="px-4 py-2.5 text-center bg-indigo-50 text-indigo-900 font-bold">參加課輔 (有意願)</th>
+                  <th class="px-4 py-2.5 text-center">博幼補救方案</th>
+                  <th class="px-4 py-2.5 text-center">級任課間補救</th>
+                  <th class="px-4 py-2.5 text-center">校外安親班</th>
+                  <th class="px-4 py-2.5 text-center">其他</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${filteredCandidates.map(c => {
+                  const sv = state.surveys[c.idCard] || { willAttend: false, alternative: '' };
+                  return `
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="px-4 py-2 font-medium text-slate-900">${c.grade}年${c.classNum}班 (${c.seatNum}號)</td>
+                      <td class="px-4 py-2 font-semibold text-slate-800">${c.name}</td>
+                      <td class="px-4 py-2 text-center bg-indigo-50/50">
+                        <input type="checkbox" ${sv.willAttend ? 'checked' : ''} onchange="updateSurveyWillAttend('${c.idCard}', this.checked)" class="w-4 h-4 text-indigo-600 rounded cursor-pointer">
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                        <input type="radio" name="alt_${c.idCard}" ${!sv.willAttend && sv.alternative === '博幼' ? 'checked' : ''} ${sv.willAttend ? 'disabled' : ''} onchange="updateSurveyAlt('${c.idCard}', '博幼')" class="cursor-pointer">
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                        <input type="radio" name="alt_${c.idCard}" ${!sv.willAttend && sv.alternative === '課間' ? 'checked' : ''} ${sv.willAttend ? 'disabled' : ''} onchange="updateSurveyAlt('${c.idCard}', '課間')" class="cursor-pointer">
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                        <input type="radio" name="alt_${c.idCard}" ${!sv.willAttend && sv.alternative === '安親班' ? 'checked' : ''} ${sv.willAttend ? 'disabled' : ''} onchange="updateSurveyAlt('${c.idCard}', '安親班')" class="cursor-pointer">
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                        <input type="radio" name="alt_${c.idCard}" ${!sv.willAttend && sv.alternative === '其他' ? 'checked' : ''} ${sv.willAttend ? 'disabled' : ''} onchange="updateSurveyAlt('${c.idCard}', '其他')" class="cursor-pointer">
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+// 模組四：開班規劃
+    function renderClassesModule(container) {
+      container.innerHTML = `
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">本期開班與排程規劃管理</h2>
+            <p class="text-xs text-slate-500 mt-0.5">系統將自動比對行事曆與國定假日，計算實際上課節數</p>
+          </div>
+          <button type="button" onclick="openClassModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded shadow transition flex items-center space-x-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            <span>新增班級</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${state.classes.map(cls => {
+            const periods = calculateClassTotalPeriods(cls, state.holidays);
+            return `
+              <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow transition relative flex flex-col">
+                <div class="absolute top-4 right-4 flex space-x-1">
+                  <button type="button" onclick="openClassModal('${cls.id}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                  <button type="button" onclick="deleteClass('${cls.id}')" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm">${cls.name} <span class="ml-1 text-xs font-normal text-slate-500">${cls.grade}年級</span></h3>
+                <div class="mt-3 text-xs text-slate-600 space-y-1.5 flex-grow">
+                  <p class="flex items-start"><span class="w-12 text-slate-400 shrink-0">任課師</span> <span class="font-medium text-slate-800">${cls.teacher}</span></p>
+                  <p class="flex items-start"><span class="w-12 text-slate-400 shrink-0">教室</span> <span>${cls.room}</span></p>
+                  <p class="flex items-start"><span class="w-12 text-slate-400 shrink-0">時間</span> <span>${cls.timeDesc}</span></p>
+                  <p class="flex items-start"><span class="w-12 text-slate-400 shrink-0">期程</span> <span class="text-indigo-600">${cls.startDate} ~${cls.endDate}</span></p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                  <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-semibold">排定 ${periods} 節</span>
+                  <span class="text-slate-500">已編入 ${cls.studentIds.length} 名學生</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <!-- 假日排課排除參數維護 -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-bold text-slate-900">非六日放假參數維護</h3>
+                <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">排課自動排除</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-3">自動扣除非六日放假節數（如二二八連假、清明兒童節連假等）</p>
+              <div class="max-h-48 overflow-y-auto space-y-1.5 mb-3 border border-slate-200 rounded p-2 text-xs">
+                ${state.holidays.map(h => `
+                  <div class="flex justify-between items-center py-1 px-2 bg-slate-50 rounded">
+                    <span class="font-mono text-slate-700">${h}</span>
+                    <button type="button" onclick="removeHoliday('${h}')" class="text-rose-500 hover:text-rose-700 text-xs">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="flex space-x-2 pt-2 border-t">
+              <input type="date" id="newHolidayInput" class="flex-grow px-2.5 py-1.5 border rounded text-xs">
+              <button type="button" onclick="addHoliday()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-medium">加入</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+       
+    function addHoliday() {
+      const val = document.getElementById('newHolidayInput').value;
+      if (!val) return;
+      if (!state.holidays.includes(val)) {
+        state.holidays.push(val);
+        state.holidays.sort();
+        saveState();
+      }
+    }
+
+    function removeHoliday(h) {
+      state.holidays = state.holidays.filter(x => x !== h);
+      saveState();
+    }
+
+    function openClassModal(classId = null) {
+      const isEdit = !!classId;
+      const cls = isEdit ? state.classes.find(c => c.id === classId) : {
+        id: generateClassId(), name: '', grade: 1, teacher: '', room: '', timeDesc: '',
+        startDate: '2023-02-27', endDate: '2023-05-26', daysOfWeek: [], periodsPerMeeting: 1, studentIds: []
+      };
+
+      const dayOpts = [
+        { val: 1, label: '一' }, { val: 2, label: '二' }, { val: 3, label: '三' },
+        { val: 4, label: '四' }, { val: 5, label: '五' }, { val: 6, label: '六' }, { val: 7, label: '日' }
+      ];
+
+      const candidates = state.screenings.filter(sc => (sc.chinese === 'X' || sc.math === 'X' || sc.english === 'X') && (state.surveys[sc.idCard] && state.surveys[sc.idCard].willAttend));
+
+      const modalHTML = `
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-slate-900">${isEdit ? '編輯' : '新增'}開班資訊</h2>
+          <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <form id="classForm" onsubmit="saveClassForm(event, '${cls.id}')" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">班級名稱 (必填)</label><input type="text" name="name" value="${cls.name}" required class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">授課年級</label><input type="number" name="grade" min="1" max="9" value="${cls.grade}" required class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">任課教師</label><input type="text" name="teacher" value="${cls.teacher}" class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">上課教室</label><input type="text" name="room" value="${cls.room}" class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+          </div>
+          
+          <div class="border-t border-slate-200 pt-4 grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">開課日期</label><input type="date" name="startDate" value="${cls.startDate}" required class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">結業日期</label><input type="date" name="endDate" value="${cls.endDate}" required class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div class="col-span-2"><label class="block text-xs font-semibold text-slate-700 mb-1">每週授課星期</label>
+              <div class="flex space-x-3">
+                ${dayOpts.map(d => `<label class="flex items-center space-x-1"><input type="checkbox" name="daysOfWeek" value="${d.val}" ${cls.daysOfWeek.includes(d.val) ? 'checked' : ''} class="w-4 h-4 text-indigo-600"><span class="text-sm">星期${d.label}</span></label>`).join('')}
+              </div>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">每次授課節數</label><input type="number" name="periodsPerMeeting" min="1" max="8" value="${cls.periodsPerMeeting}" required class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">上課時間描述 (僅為備註)</label><input type="text" name="timeDesc" value="${cls.timeDesc}" placeholder="例: 16:10~16:50" class="w-full border border-slate-300 rounded px-3 py-1.5 text-sm"></div>
+          </div>
+
+          <div class="border-t border-slate-200 pt-4">
+            <label class="block text-xs font-semibold text-slate-700 mb-2">編入學生名單 (僅顯示有意願參加課輔者)</label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border border-slate-200 rounded bg-slate-50">
+              ${candidates.map(sc => `<label class="flex items-center space-x-2 text-sm"><input type="checkbox" name="studentIds" value="${sc.idCard}" ${cls.studentIds.includes(sc.idCard) ? 'checked' : ''} class="w-4 h-4 text-indigo-600"><span class="truncate">${sc.grade}-${sc.classNum}${sc.name}</span></label>`).join('')}
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end space-x-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded">取消</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded shadow">儲存設定</button>
+          </div>
+        </form>
+      `;
+      const container = document.getElementById('modalContainer');
+      const content = document.getElementById('modalContent');
+      content.innerHTML = modalHTML;
+      container.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modalContainer').classList.add('hidden');
+    }
+
+    function saveClassForm(event, id) {
+      event.preventDefault();
+      const form = event.target;
+      const days = Array.from(form.querySelectorAll('input[name="daysOfWeek"]:checked')).map(cb => parseInt(cb.value));
+      const sIds = Array.from(form.querySelectorAll('input[name="studentIds"]:checked')).map(cb => cb.value);
+
+      const clsObj = {
+        id,
+        name: form.name.value.trim(),
+        grade: parseInt(form.grade.value),
+        teacher: form.teacher.value.trim(),
+        room: form.room.value.trim(),
+        startDate: form.startDate.value,
+        endDate: form.endDate.value,
+        daysOfWeek: days,
+        periodsPerMeeting: parseInt(form.periodsPerMeeting.value),
+        timeDesc: form.timeDesc.value.trim(),
+        studentIds: sIds
+      };
+
+      const idx = state.classes.findIndex(c => c.id === id);
+      if (idx > -1) {
+        state.classes[idx] = clsObj;
+      } else {
+        state.classes.push(clsObj);
+      }
+      
+      closeModal();
+      saveState();
+    }
+
+    function deleteClass(id) {
+      if (confirm('確定要刪除此班級？')) {
+        state.classes = state.classes.filter(c => c.id !== id);
+        saveState();
+      }
+    }
+
+    function generateClassId() {
+      return 'cls_' + Math.random().toString(36).substring(2, 9);
+    }
+
+    // 模組五：報表輸出中心
+    function renderReportsModule(container) {
+      const selectedCls = state.classes.find(c => c.id === state.reportConfig.selectedClassId) || state.classes.at(0);
+      if (selectedCls && !state.reportConfig.selectedClassId) {
+        state.reportConfig.selectedClassId = selectedCls.id;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="no-print bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="text-xs font-bold text-slate-700">選擇輔導班級：</label>
+              <select onchange="updateReportClass(this.value)" class="text-xs px-3 py-1.5 border border-slate-300 rounded font-semibold bg-slate-50">
+                ${state.classes.map(c => `<option value="${c.id}" ${c.id === state.reportConfig.selectedClassId ? 'selected' : ''}>${c.name} (${c.teacher})</option>`).join('')}
+              </select>
+
+              <label class="text-xs font-bold text-slate-700 ml-2">表件類型：</label>
+              <div class="inline-flex rounded-md shadow-sm">
+                <button type="button" onclick="updateReportType('roster')" class="px-3 py-1.5 text-xs font-medium rounded-l-md border ${state.reportConfig.reportType === 'roster' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700'}">1. 參加學生名冊</button>
+                <button type="button" onclick="updateReportType('signin')" class="px-3 py-1.5 text-xs font-medium border-t border-b border-r ${state.reportConfig.reportType === 'signin' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700'}">2. 教師簽到簿</button>
+                <button type="button" onclick="updateReportType('plan')" class="px-3 py-1 text-xs font-medium border-t border-b border-r ${state.reportConfig.reportType === 'plan' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700'}">3. 教學計畫表</button>
+                <button type="button" onclick="updateReportType('attendance')" class="px-3 py-1.5 text-xs font-medium rounded-r-md border-t border-b border-r ${state.reportConfig.reportType === 'attendance' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700'}">4. 學生出缺席表</button>
+              </div>
+            </div>
+
+            <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>列印目前表件 (A4規格)</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-md border border-slate-300 p-8 min-h-screen text-slate-900">
+            ${renderCurrentReportContent(selectedCls)}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateReportClass(clsId) {
+      state.reportConfig.selectedClassId = clsId;
+      saveState();
+    }
+
+    function updateReportType(type) {
+      state.reportConfig.reportType = type;
+      saveState();
+    }
+
+    function renderCurrentReportContent(cls) {
+      if (!cls) return '<div class="text-center py-12 text-slate-400">請先建立班級</div>';
+      switch (state.reportConfig.reportType) {
+        case 'roster': return renderRosterReport(cls);
+        case 'signin': return renderSignInReport(cls);
+        case 'plan': return renderPlanReport(cls);
+        case 'attendance': return renderAttendanceReport(cls);
+        case 'notice': return renderNoticeReport(cls);
+        default: return renderRosterReport(cls);
+      }
+    }
+
+    // 1. 各班參加學生名冊
+    function renderRosterReport(cls) {
+      const studentsInClass = state.students.filter(s => cls.studentIds.includes(s.idCard));
+      return `
+        <div class="text-center mb-6">
+          <h2 class="text-xl font-bold tracking-wider">南投縣南光國小 111學年度下學期 學習扶助參加學生名冊</h2>
+          <div class="flex justify-between text-xs mt-3 px-2 font-medium">
+            <span>校名：南投縣南光國民小學</span>
+            <span>班別：${cls.name}</span>
+            <span>指導老師：${cls.teacher}</span>
+          </div>
+        </div>
+        <table class="w-full text-xs text-left border border-black border-collapse">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="border border-black px-3 py-2 text-center w-12">編號</th>
+              <th class="border border-black px-3 py-2">學生姓名</th>
+              <th class="border border-black px-3 py-2 text-center">原班級座號</th>
+              <th class="border border-black px-3 py-2">身分類別 (法定補助代碼)</th>
+              <th class="border border-black px-3 py-2">學習成就概況 (指標)</th>
+              <th class="border border-black px-3 py-2">緊急通訊電話</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${studentsInClass.map((s, idx) => {
+              const sc = state.screenings.find(x => x.idCard === s.idCard);
+              const cat = sc ? sc.category : '一般生';
+              const code = getCategoryCode(cat);
+              return `
+                <tr>
+                  <td class="border border-black px-3 py-2 text-center font-mono">${idx + 1}</td>
+                  <td class="border border-black px-3 py-2 font-bold">${s.name}</td>
+                  <td class="border border-black px-3 py-2 text-center">${s.grade}年${s.classNum}班 (${s.seatNum}號)</td>
+                  <td class="border border-black px-3 py-2">類別${code}：${cat}</td>
+                  <td class="border border-black px-3 py-2">非都會地區班級成績後35% (全)</td>
+                  <td class="border border-black px-3 py-2 font-mono">${s.parent1Phone || s.phone || '-'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="mt-4 text-xs text-slate-600 space-y-1">
+          <p>※ 身分類別代碼：1.原住民學生 2.身心障礙人士子女及身心障礙學生 3.外籍配偶/新住民子女 4.低收、中低收入及免納所得稅農工漁民子弟 5.其他經學校認定有需要學生</p>
+        </div>
+      `;
+    }
+
+    // 2. 教師簽到簿
+    function renderSignInReport(cls) {
+      const sessions = calculateScheduleSessions(cls, state.holidays);
+      return `
+        <div class="text-center mb-6">
+          <h2 class="text-xl font-bold tracking-wider">南投縣南光國小 111學年度下學期 學習扶助教師簽到簿</h2>
+          <div class="grid grid-cols-3 text-xs mt-3 px-2 font-medium">
+            <span class="text-left">班別：${cls.name}</span>
+            <span class="text-center">上課時段：${cls.timeDesc}</span>
+            <span class="text-right">指導老師：${cls.teacher}</span>
+          </div>
+        </div>
+        <table class="w-full text-xs text-left border border-black border-collapse">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="border border-black px-3 py-2 text-center w-12">次數</th>
+              <th class="border border-black px-3 py-2 text-center">日期</th>
+              <th class="border border-black px-3 py-2 text-center">星期</th>
+              <th class="border border-black px-3 py-2 text-center">節數</th>
+              <th class="border border-black px-3 py-2 text-center">排定上課時段</th>
+              <th class="border border-black px-3 py-2 text-center w-36">授課教師簽名</th>
+              <th class="border border-black px-3 py-2">備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sessions.map((s, idx) => `
+              <tr class="${s.isHoliday ? 'bg-slate-100 text-slate-400' : ''}">
+                <td class="border border-black px-3 py-2 text-center font-mono">${idx + 1}</td>
+                <td class="border border-black px-3 py-2 text-center font-mono font-semibold">${s.date}</td>
+                <td class="border border-black px-3 py-2 text-center">(${s.dayOfWeekText})</td>
+                <td class="border border-black px-3 py-2 text-center font-bold">${s.periods}</td>
+                <td class="border border-black px-3 py-2 text-center">${s.isHoliday ? '國定放假' : cls.timeDesc}</td>
+                <td class="border border-black px-3 py-2 text-center">${s.isHoliday ? '<span class="text-rose-600 font-bold">放假</span>' : ''}</td>
+                <td class="border border-black px-3 py-2 text-xs">${s.isHoliday ? '國定假日免上課' : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="mt-4 flex justify-between text-xs font-semibold px-2">
+          <span>合計核實授課節數：${sessions.reduce((sum, s) => sum + s.periods, 0)} 節</span>
+          <span>承辦人核章：____________  教務/輔導主任：____________  校長：____________</span>
+        </div>
+      `;
+    }
+
+    // 3. 教學計畫表
+    function renderPlanReport(cls) {
+      const sessions = calculateScheduleSessions(cls, state.holidays).filter(s => !s.isHoliday);
+      const teacherName = cls.teacher.replace(/^.*?\)/, '');
+      return `
+        <div class="text-center mb-6">
+          <h2 class="text-xl font-bold tracking-wider">111學年度南光國民小學「學習扶助實施方案」教學計畫</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 text-xs mt-3 gap-2 text-left font-medium border p-2 rounded bg-slate-50">
+            <span>班別：${cls.name}</span>
+            <span>指導教師：${cls.teacher}</span>
+            <span>授課地點：${cls.room}</span>
+            <span>總授課節數：${calculateClassTotalPeriods(cls, state.holidays)} 節</span>
+            <span class="col-span-2">起訖日期：${cls.startDate} ~ ${cls.endDate}</span>
+            <span class="col-span-2">時段：${cls.timeDesc}</span>
+          </div>
+        </div>
+        <table class="w-full text-xs text-left border border-black border-collapse">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="border border-black px-2 py-2 text-center w-10">週次</th>
+              <th class="border border-black px-3 py-2 text-center w-24">日期</th>
+              <th class="border border-black px-4 py-2">教學內容摘要（搭配基本學習內容指標）</th>
+              <th class="border border-black px-3 py-2 text-center w-28">評量方式</th>
+              <th class="border border-black px-3 py-2 text-center w-20">授課教師</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sessions.map((s, idx) => `
+              <tr>
+                <td class="border border-black px-2 py-2 text-center font-mono">${idx + 1}</td>
+                <td class="border border-black px-3 py-2 text-center font-mono">${s.date}</td>
+                <td class="border border-black px-4 py-2"></td>
+                <td class="border border-black px-3 py-2 text-center">紙筆測驗<br>課堂問答</td>
+                <td class="border border-black px-3 py-2 text-center">${teacherName}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 4. 學生出缺席表
+function renderAttendanceReport(cls) {
+  const sessions = calculateScheduleSessions(cls, state.holidays).filter(s => !s.isHoliday);
+  const studentsInClass = state.students.filter(s => cls.studentIds.includes(s.idCard));
+
+  // 將上課次數依每 13 次切分為一組 (分頁)
+  const chunkSize = 13;
+  const sessionChunks = [];
+  for (let i = 0; i < sessions.length; i += chunkSize) {
+    sessionChunks.push(sessions.slice(i, i + chunkSize));
+  }
+
+  // 若尚未排定任何日期，仍顯示一組空表
+  if (sessionChunks.length === 0) {
+    sessionChunks.push([]);
+  }
+
+  return sessionChunks.map((chunk, chunkIndex) => `
+    <div class="${chunkIndex < sessionChunks.length - 1 ? 'page-break mb-12' : ''}">
+      <div class="text-center mb-6">
+        <h2 class="text-xl font-bold tracking-wider">南光國小 111學年度下學期 學習扶助 學生出缺席紀錄表 ${sessionChunks.length > 1 ? `(第 ${chunkIndex + 1} 頁)` : ''}</h2>
+        <div class="flex justify-between text-xs mt-3 px-2 font-medium">
+          <span>班別：${cls.name}</span>
+          <span>指導教師：${cls.teacher}</span>
+          <span>授課總節數：${calculateClassTotalPeriods(cls, state.holidays)} 節</span>
+          <span>學生人數：${studentsInClass.length} 人</span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left border border-black border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-xs">
+              <th class="border border-black px-2 py-1 text-center w-20">年級班級</th>
+              <th class="border border-black px-2 py-1 text-center w-20">學生姓名</th>
+              ${chunk.map(s => `
+                <th class="border border-black px-1 py-1 text-center font-mono w-12">
+                  <div>${s.date.slice(5)}</div>
+                  <div>(${s.dayOfWeekText})</div>
+                </th>
+              `).join('')}
+              <!-- 若該頁不足 13 次，補齊空白欄位以固定排版寬度 -->
+              ${Array.from({ length: chunkSize - chunk.length }).map(() => `
+                <th class="border border-black px-1 py-1 text-center w-12"></th>
+              `).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${studentsInClass.map(s => `
+              <tr>
+                <td class="border border-black px-2 py-1 text-center whitespace-nowrap text-xs">${s.grade}年${s.classNum}班</td>
+                <td class="border border-black px-2 py-1 font-semibold text-center whitespace-nowrap">${s.name}</td>${chunk.map(() => `
+                  <td class="border border-black px-1 py-1 text-center text-slate-300">○</td>
+                `).join('')}
+                <!-- 補齊空白欄位的對應學生出缺席格 -->
+                ${Array.from({ length: chunkSize - chunk.length }).map(() => `
+                  <td class="border border-black px-1 py-1"></td>
+                `).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 flex justify-between text-xs text-slate-600">
+        <span>出缺席符號規範：○ 出席 × 缺席 △ 請假</span>
+        <span>任課教師簽章：__________________</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+    // 5. 個別家長通知單
+    function renderNoticeReport(cls) {
+      const studentsInClass = state.students.filter(s => cls.studentIds.includes(s.idCard));
+      if (studentsInClass.length === 0) {
+        return '<div class="text-center py-12 text-slate-400">目前本班尚未編入學生</div>';
+      }
+
+      return `
+        <div class="space-y-12">
+          ${studentsInClass.map(s => `
+            <div class="border-2 border-dashed border-slate-400 p-6 rounded-lg text-slate-900 page-break">
+              <div class="text-center border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold">南投縣南光國民小學 111學年度 學生參加學習扶助班家長通知與同意書</h3>
+                <p class="text-xs text-slate-500 mt-1">教育部國民及學前教育署補助辦理學習扶助實施方案</p>
+              </div>
+              <div class="space-y-3 text-xs leading-relaxed">
+                <p>親愛的 <strong>${s.name}</strong> 家長您好：</p>
+                <p class="indent-6">
+                  為厚植學生基礎學力，提升學習成效與自信心，本校配合教育部政策特開設學習扶助輔導班。誠摯邀請貴子弟參加免費課後/課間學習扶助課程。
+                </p>
+                <div class="bg-slate-50 border p-3 rounded space-y-1 font-medium">
+                  <div>輔導班別：<strong>${cls.name}</strong>（授課教師：${cls.teacher}）</div>
+                  <div>上課時段：<strong>${cls.timeDesc}</strong></div>
+                  <div>上課地點：<strong>${cls.room}</strong></div>
+                  <div>輔導起訖：自 <strong>${cls.startDate}</strong> 至 <strong>${cls.endDate}</strong> 止（遇國定假日免上課）</div>
+                </div>
+                <div class="border-t pt-4 mt-6">
+                  <div class="font-bold mb-2">【家長回條】（請勾選後簽名交回級任導師）</div>
+                  <div class="flex space-x-6">
+                    <label class="flex items-center space-x-2"><input type="checkbox" checked> <span>□ 同意參加學習扶助課程，並督促貴子弟準時出席。</span></label>
+                  </div>
+                  <div class="flex space-x-6 mt-2">
+                    <label class="flex items-center space-x-2"><input type="checkbox"> <span>□ 因個人生涯/補習因素，不參加課輔（將另由導師或替代方案追蹤）。</span></label>
+                  </div>
+                  <div class="mt-6 flex justify-between items-center text-xs">
+                    <span>學生班級座號：${s.grade}年${s.classNum}班 ${s.seatNum}號</span>
+                    <span>家長簽名：____________________</span>
+                    <span>日期：112年____月____日</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+  </script>
+</body>
+</html>
