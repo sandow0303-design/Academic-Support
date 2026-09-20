@@ -1,0 +1,999 @@
+{
+  "currentTab": "reports",
+  "holidays": [
+    "2026-09-28",
+    "2026-10-09",
+    "2026-10-26",
+    "2026-12-25",
+    "2026-12-31",
+    "2027-01-01"
+  ],
+  "students": [
+    {
+      "idCard": "A232435236",
+      "name": "李晨羽",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 20,
+      "gender": "女",
+      "phone": "0492987143",
+      "parent1Phone": "0981131383",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223387012",
+      "name": "洪妤妶",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 21,
+      "gender": "女",
+      "phone": "0909001562",
+      "parent1Phone": "0909001562",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "K223166325",
+      "name": "蕭辰安",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 25,
+      "gender": "女",
+      "phone": "0977420260",
+      "parent1Phone": "0977420260",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123538071",
+      "name": "葛皇瑜",
+      "grade": 2,
+      "classNum": 4,
+      "seatNum": 12,
+      "gender": "男",
+      "phone": "2926510",
+      "parent1Phone": "0910572544",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223409586",
+      "name": "古予芯",
+      "grade": 2,
+      "classNum": 4,
+      "seatNum": 15,
+      "gender": "女",
+      "phone": "0958488088",
+      "parent1Phone": "0978379762",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123465868",
+      "name": "全印梵",
+      "grade": 2,
+      "classNum": 5,
+      "seatNum": 8,
+      "gender": "男",
+      "phone": "0906115530",
+      "parent1Phone": "0906115530",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "E126906673",
+      "name": "張立威",
+      "grade": 2,
+      "classNum": 6,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0976613256",
+      "parent1Phone": "0976613256",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223401008",
+      "name": "白芷璇",
+      "grade": 2,
+      "classNum": 6,
+      "seatNum": 13,
+      "gender": "女",
+      "phone": "0901331777",
+      "parent1Phone": "0901331777",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223406763",
+      "name": "徐郁琪",
+      "grade": 2,
+      "classNum": 8,
+      "seatNum": 16,
+      "gender": "女",
+      "phone": "0932587753",
+      "parent1Phone": "0916875761",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123462938",
+      "name": "羅寯樂",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 7,
+      "gender": "男",
+      "phone": "0905372081",
+      "parent1Phone": "0905372081",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123487837",
+      "name": "陳則諺",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0917355055",
+      "parent1Phone": "0917355055",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123485280",
+      "name": "廖懋榕",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 22,
+      "gender": "男",
+      "phone": "0917606051",
+      "parent1Phone": "0917606051",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223307425",
+      "name": "廖唯安",
+      "grade": 3,
+      "classNum": 3,
+      "seatNum": 10,
+      "gender": "女",
+      "phone": "0933254542",
+      "parent1Phone": "0933254542",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "P125157058",
+      "name": "饒桀睿",
+      "grade": 3,
+      "classNum": 7,
+      "seatNum": 4,
+      "gender": "男",
+      "phone": "0909027072",
+      "parent1Phone": "0910543715",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223307309",
+      "name": "高芷晴",
+      "grade": 4,
+      "classNum": 4,
+      "seatNum": 26,
+      "gender": "女",
+      "phone": "0985072121",
+      "parent1Phone": "0985072121",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "F170089240",
+      "name": "吳慶貴",
+      "grade": 4,
+      "classNum": 7,
+      "seatNum": 7,
+      "gender": "男",
+      "phone": "0906882259",
+      "parent1Phone": "0906882259",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123420976",
+      "name": "古富宇",
+      "grade": 4,
+      "classNum": 8,
+      "seatNum": 10,
+      "gender": "男",
+      "phone": "0979727733",
+      "parent1Phone": "0979727733",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123417291",
+      "name": "劉昶樂",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0909583359",
+      "parent1Phone": "0909583359",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223360913",
+      "name": "黃珮玲",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 14,
+      "gender": "女",
+      "phone": "0492422129",
+      "parent1Phone": "0963422129",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223361465",
+      "name": "葉育如",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 16,
+      "gender": "女",
+      "phone": "0923875761",
+      "parent1Phone": "0923875761",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223361125",
+      "name": "卓品汝",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 13,
+      "gender": "女",
+      "phone": "0922706758",
+      "parent1Phone": "0922706758",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "O200883256",
+      "name": "劉佳貞",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 14,
+      "gender": "女",
+      "phone": "0981990863",
+      "parent1Phone": "0981990863",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223363147",
+      "name": "王羽嫣",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 26,
+      "gender": "女",
+      "phone": "0980627782",
+      "parent1Phone": "0980627782",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123351190",
+      "name": "廖元頤",
+      "grade": 5,
+      "classNum": 5,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0975876103",
+      "parent1Phone": "0975876103",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "O100921562",
+      "name": "林毓展",
+      "grade": 5,
+      "classNum": 7,
+      "seatNum": 3,
+      "gender": "男",
+      "phone": "0912353672",
+      "parent1Phone": "0912353672",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223305010",
+      "name": "施燕禎",
+      "grade": 5,
+      "classNum": 7,
+      "seatNum": 12,
+      "gender": "女",
+      "phone": "0916912212",
+      "parent1Phone": "0916912212",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "D223655509",
+      "name": "汪裕婷",
+      "grade": 5,
+      "classNum": 9,
+      "seatNum": 25,
+      "gender": "女",
+      "phone": "0908298298",
+      "parent1Phone": "0908298298",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123410569",
+      "name": "潘宥霖",
+      "grade": 6,
+      "classNum": 1,
+      "seatNum": 8,
+      "gender": "男",
+      "phone": "0989197883",
+      "parent1Phone": "0989197883",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "A131312232",
+      "name": "谷大衛",
+      "grade": 6,
+      "classNum": 1,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0965262507",
+      "parent1Phone": "0965262507",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123349770",
+      "name": "程健致",
+      "grade": 6,
+      "classNum": 4,
+      "seatNum": 11,
+      "gender": "男",
+      "phone": "0987849001",
+      "parent1Phone": "0987849001",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M223303767",
+      "name": "楊紘",
+      "grade": 6,
+      "classNum": 5,
+      "seatNum": 13,
+      "gender": "女",
+      "phone": "0980988854",
+      "parent1Phone": "0980988854",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "B224278657",
+      "name": "陳妤瑄",
+      "grade": 6,
+      "classNum": 6,
+      "seatNum": 23,
+      "gender": "女",
+      "phone": "0920373195",
+      "parent1Phone": "0920373195",
+      "parent2Phone": ""
+    },
+    {
+      "idCard": "M123411217",
+      "name": "謝陳尉",
+      "grade": 6,
+      "classNum": 7,
+      "seatNum": 4,
+      "gender": "男",
+      "phone": "0921798049",
+      "parent1Phone": "0921798049",
+      "parent2Phone": ""
+    }
+  ],
+  "screenings": [
+    {
+      "idCard": "A232435236",
+      "name": "李晨羽",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 20,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223387012",
+      "name": "洪妤妶",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 21,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "原住民學生"
+    },
+    {
+      "idCard": "K223166325",
+      "name": "蕭辰安",
+      "grade": 2,
+      "classNum": 3,
+      "seatNum": 25,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123538071",
+      "name": "葛皇瑜",
+      "grade": 2,
+      "classNum": 4,
+      "seatNum": 12,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223409586",
+      "name": "古予芯",
+      "grade": 2,
+      "classNum": 4,
+      "seatNum": 15,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "原住民學生"
+    },
+    {
+      "idCard": "M123465868",
+      "name": "全印梵",
+      "grade": 2,
+      "classNum": 5,
+      "seatNum": 8,
+      "chinese": "O",
+      "math": "X",
+      "english": "",
+      "category": "原住民學生"
+    },
+    {
+      "idCard": "E126906673",
+      "name": "張立威",
+      "grade": 2,
+      "classNum": 6,
+      "seatNum": 11,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223401008",
+      "name": "白芷璇",
+      "grade": 2,
+      "classNum": 6,
+      "seatNum": 13,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223406763",
+      "name": "徐郁琪",
+      "grade": 2,
+      "classNum": 8,
+      "seatNum": 16,
+      "chinese": "O",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123462938",
+      "name": "羅寯樂",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 7,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "原住民學生"
+    },
+    {
+      "idCard": "M123487837",
+      "name": "陳則諺",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 11,
+      "chinese": "O",
+      "math": "X",
+      "english": "",
+      "category": "低收農工"
+    },
+    {
+      "idCard": "M123485280",
+      "name": "廖懋榕",
+      "grade": 3,
+      "classNum": 2,
+      "seatNum": 22,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223307425",
+      "name": "廖唯安",
+      "grade": 3,
+      "classNum": 3,
+      "seatNum": 10,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "原住民學生"
+    },
+    {
+      "idCard": "P125157058",
+      "name": "饒桀睿",
+      "grade": 3,
+      "classNum": 7,
+      "seatNum": 4,
+      "chinese": "X",
+      "math": "X",
+      "english": "",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223307309",
+      "name": "高芷晴",
+      "grade": 4,
+      "classNum": 4,
+      "seatNum": 26,
+      "chinese": "X",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "F170089240",
+      "name": "吳慶貴",
+      "grade": 4,
+      "classNum": 7,
+      "seatNum": 7,
+      "chinese": "X",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123420976",
+      "name": "古富宇",
+      "grade": 4,
+      "classNum": 8,
+      "seatNum": 10,
+      "chinese": "X",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123417291",
+      "name": "劉昶樂",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 11,
+      "chinese": "O",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223360913",
+      "name": "黃珮玲",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 14,
+      "chinese": "",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223361465",
+      "name": "葉育如",
+      "grade": 5,
+      "classNum": 2,
+      "seatNum": 16,
+      "chinese": "X",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223361125",
+      "name": "卓品汝",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 13,
+      "chinese": "X",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "O200883256",
+      "name": "劉佳貞",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 14,
+      "chinese": "O",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223363147",
+      "name": "王羽嫣",
+      "grade": 5,
+      "classNum": 3,
+      "seatNum": 26,
+      "chinese": "",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123351190",
+      "name": "廖元頤",
+      "grade": 5,
+      "classNum": 5,
+      "seatNum": 11,
+      "chinese": "",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "O100921562",
+      "name": "林毓展",
+      "grade": 5,
+      "classNum": 7,
+      "seatNum": 3,
+      "chinese": "O",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223305010",
+      "name": "施燕禎",
+      "grade": 5,
+      "classNum": 7,
+      "seatNum": 12,
+      "chinese": "",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "D223655509",
+      "name": "汪裕婷",
+      "grade": 5,
+      "classNum": 9,
+      "seatNum": 25,
+      "chinese": "X",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123410569",
+      "name": "潘宥霖",
+      "grade": 6,
+      "classNum": 1,
+      "seatNum": 8,
+      "chinese": "X",
+      "math": "",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "A131312232",
+      "name": "谷大衛",
+      "grade": 6,
+      "classNum": 1,
+      "seatNum": 11,
+      "chinese": "X",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123349770",
+      "name": "程健致",
+      "grade": 6,
+      "classNum": 4,
+      "seatNum": 11,
+      "chinese": "",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M223303767",
+      "name": "楊紘",
+      "grade": 6,
+      "classNum": 5,
+      "seatNum": 13,
+      "chinese": "O",
+      "math": "X",
+      "english": "X",
+      "category": "一般生"
+    },
+    {
+      "idCard": "B224278657",
+      "name": "陳妤瑄",
+      "grade": 6,
+      "classNum": 6,
+      "seatNum": 23,
+      "chinese": "",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    },
+    {
+      "idCard": "M123411217",
+      "name": "謝陳尉",
+      "grade": 6,
+      "classNum": 7,
+      "seatNum": 4,
+      "chinese": "",
+      "math": "X",
+      "english": "O",
+      "category": "一般生"
+    }
+  ],
+  "surveys": {
+    "A232435236": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223387012": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "K223166325": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123538071": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223409586": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123465868": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "E126906673": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223401008": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223406763": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123462938": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123487837": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123485280": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223307425": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "P125157058": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223307309": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "F170089240": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123420976": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123417291": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223360913": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223361465": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223361125": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "O200883256": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223363147": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123351190": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "O100921562": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223305010": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "D223655509": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123410569": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "A131312232": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123349770": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M223303767": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "B224278657": {
+      "willAttend": true,
+      "alternative": ""
+    },
+    "M123411217": {
+      "willAttend": true,
+      "alternative": ""
+    }
+  },
+  "classes": [
+    {
+      "id": "c2_a",
+      "name": "二年甲班",
+      "grade": 2,
+      "teacher": "(國數)簡雪娥",
+      "room": "書法教室",
+      "startDate": "2026-09-28",
+      "endDate": "2027-01-08",
+      "daysOfWeek": [
+        5
+      ],
+      "periodsPerMeeting": 3,
+      "timeDesc": "每周五下午3節 (13:30~16:00)",
+      "studentIds": [
+        "A232435236",
+        "M223387012",
+        "K223166325",
+        "M123538071",
+        "M223409586",
+        "M123465868",
+        "E126906673",
+        "M223401008",
+        "M223406763"
+      ]
+    },
+    {
+      "id": "c3_a",
+      "name": "三年甲班",
+      "grade": 3,
+      "teacher": "(國數)導師輪流",
+      "room": "三年級教室",
+      "startDate": "2026-09-28",
+      "endDate": "2027-01-08",
+      "daysOfWeek": [
+        5
+      ],
+      "periodsPerMeeting": 3,
+      "timeDesc": "每周五下午3節 (13:30~16:00)",
+      "studentIds": [
+        "M123462938",
+        "M123487837",
+        "M123485280",
+        "M223307425",
+        "P125157058"
+      ]
+    },
+    {
+      "id": "c4_a",
+      "name": "四年甲班",
+      "grade": 4,
+      "teacher": "(國數)何麗珍",
+      "room": "自然教室二",
+      "startDate": "2026-09-28",
+      "endDate": "2027-01-08",
+      "daysOfWeek": [
+        5
+      ],
+      "periodsPerMeeting": 3,
+      "timeDesc": "每周五下午3節 (13:30~16:00)",
+      "studentIds": [
+        "M223307309",
+        "F170089240",
+        "M123420976"
+      ]
+    },
+    {
+      "id": "c5_a1",
+      "name": "五年甲班(一)",
+      "grade": 5,
+      "teacher": "(國數)何麗珍",
+      "room": "自然教室二",
+      "startDate": "2026-09-28",
+      "endDate": "2027-01-08",
+      "daysOfWeek": [
+        1,
+        2,
+        4
+      ],
+      "periodsPerMeeting": 1,
+      "timeDesc": "每周一、二、四 16:10~16:50",
+      "studentIds": [
+        "M123417291",
+        "M223360913",
+        "M223361465",
+        "M223361125",
+        "O200883256",
+        "M223363147",
+        "M123351190",
+        "O100921562",
+        "M223305010",
+        "D223655509"
+      ]
+    },
+    {
+      "id": "c6_a1",
+      "name": "六年甲班(一)",
+      "grade": 6,
+      "teacher": "(國數)江燕如",
+      "room": "六年5班",
+      "startDate": "2026-09-28",
+      "endDate": "2027-01-08",
+      "daysOfWeek": [
+        1,
+        2,
+        4
+      ],
+      "periodsPerMeeting": 1,
+      "timeDesc": "每周一、二、四 16:10~16:50",
+      "studentIds": [
+        "M123410569",
+        "A131312232",
+        "M123349770",
+        "M223303767",
+        "B224278657",
+        "M123411217"
+      ]
+    }
+  ],
+  "reportConfig": {
+    "selectedClassId": "c3_a",
+    "reportType": "signin"
+  },
+  "surveyFilterClass": "2-3"
+}
